@@ -45,9 +45,30 @@ export default function Home() {
             <h3>AI agents</h3>
             <p>You&apos;ve used an AI agent that performs tasks for you, such as:</p>
             <div className="pill-list">
-              <span className="pill">ChatGPT Agent / Operator</span>
-              <span className="pill">Microsoft 365 Copilot</span>
-              <span className="pill">Claude Cowork</span>
+              <a
+                className="pill"
+                href="https://openai.com/index/introducing-chatgpt-agent/"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                ChatGPT Agent / Operator ↗
+              </a>
+              <a
+                className="pill"
+                href="https://www.microsoft.com/en-us/microsoft-365/copilot"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Microsoft 365 Copilot ↗
+              </a>
+              <a
+                className="pill"
+                href="https://claude.com/product/cowork"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Claude Cowork ↗
+              </a>
             </div>
           </div>
           <div className="card highlight-card">
@@ -55,9 +76,30 @@ export default function Home() {
             <h3>Workflow automation tools</h3>
             <p>You&apos;ve built or run automations with tools such as:</p>
             <div className="pill-list">
-              <span className="pill alt">n8n</span>
-              <span className="pill alt">Zapier</span>
-              <span className="pill alt">Node-RED</span>
+              <a
+                className="pill alt"
+                href="https://n8n.io"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                n8n ↗
+              </a>
+              <a
+                className="pill alt"
+                href="https://zapier.com"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Zapier ↗
+              </a>
+              <a
+                className="pill alt"
+                href="https://nodered.org"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Node-RED ↗
+              </a>
             </div>
           </div>
         </div>
@@ -65,37 +107,6 @@ export default function Home() {
           Similar tools count too — if you&apos;re unsure whether your experience fits,
           just sign up and mention what you&apos;ve used.
         </p>
-      </section>
-
-      <section className="section">
-        <h2>The practical bits 📋</h2>
-        <div className="card-grid">
-          <div className="card">
-            <div className="emoji">⏱️</div>
-            <h3>About 1 hour</h3>
-            <p>One single session — pick a time slot that suits you.</p>
-          </div>
-          <div className="card">
-            <div className="emoji">🎁</div>
-            <h3>€15 Amazon gift card</h3>
-            <p>As a thank-you for your time, delivered after the session.</p>
-          </div>
-          <div className="card">
-            <div className="emoji">💻</div>
-            <h3>Remote via Teams</h3>
-            <p>Join from anywhere in the world over Microsoft Teams.</p>
-          </div>
-          <div className="card">
-            <div className="emoji">🏛️</div>
-            <h3>In person in Saarbrücken</h3>
-            <p>Visit us at Saarland University — Room 3.12, Building E1 7.</p>
-          </div>
-        </div>
-        <div className="note">
-          🍫 <strong>At Saarland University?</strong> We&apos;d love to meet you in
-          person — in-person participants get a <strong>bonus chocolate</strong> on top
-          of the gift card!
-        </div>
         <div className="cta-row" style={{ marginTop: 30 }}>
           <Link className="btn btn-primary" href="/register">
             Sounds fun — sign me up! →

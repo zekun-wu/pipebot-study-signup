@@ -197,6 +197,8 @@ a {
 }
 
 .pill {
+  text-decoration: none;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
   background: #eef2ff;
   color: #4338ca;
   border: 1px solid #dfe4ff;
@@ -210,6 +212,11 @@ a {
   background: #ecfeff;
   color: #0e7490;
   border-color: #d3f6fb;
+}
+
+a.pill:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(67, 56, 202, 0.18);
 }
 
 .note {
