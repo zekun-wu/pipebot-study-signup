@@ -14,7 +14,7 @@ export default function Home() {
             Ever wondered what your AI agent <span className="grad">actually did</span>{" "}
             behind the scenes?
           </h1>
-          <p className="lead" style={{ marginBottom: 14 }}>
+          <p className="lead" style={{ marginBottom: 28 }}>
             You give an AI agent a task. It thinks, clicks, types… and returns a result —
             like magic. But what happened in between?
           </p>
