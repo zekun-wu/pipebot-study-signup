@@ -38,7 +38,6 @@ export default function Home() {
         />
       </section>
 
-      <div className="dark-zone">
       <section className="section" id="who">
         <h2>Who we&apos;re looking for 🙌</h2>
         <p>
@@ -119,7 +118,6 @@ export default function Home() {
         AI Agents &amp; Workflows User Study · Saarland University · Questions? Reply to
         your confirmation email and we&apos;ll get back to you.
       </footer>
-      </div>
     </main>
   );
 }
