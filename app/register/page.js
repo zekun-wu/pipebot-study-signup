@@ -64,7 +64,6 @@ export default function RegisterPage() {
   const [slots, setSlots] = useState(null);
   const [loadError, setLoadError] = useState("");
   const [timezone, setTimezone] = useState("Europe/Berlin");
-  const [detected, setDetected] = useState("");
   const [selectedSlot, setSelectedSlot] = useState(null);
   const [mode, setMode] = useState("");
   const [name, setName] = useState("");
@@ -77,9 +76,7 @@ export default function RegisterPage() {
   const timezones = useMemo(() => getAllTimezones(), []);
 
   useEffect(() => {
-    const tz = detectTimezone();
-    setTimezone(tz);
-    setDetected(tz);
+    setTimezone(detectTimezone());
   }, []);
 
   async function loadSlots() {
@@ -216,10 +213,6 @@ export default function RegisterPage() {
             <h2>
               <span className="step-num">1</span> Choose a time slot
             </h2>
-            <p className="hint">
-              Times are shown in the timezone below — we detected it automatically, but
-              you can change it if it&apos;s wrong.
-            </p>
             <div className="tz-row">
               <label htmlFor="tz">
                 <strong>🌍 Your timezone:</strong>
@@ -238,20 +231,11 @@ export default function RegisterPage() {
                   </option>
                 ))}
               </select>
-              {detected && detected === timezone && (
-                <span className="muted">(auto-detected)</span>
-              )}
             </div>
 
             {loadError && <div className="error-box">{loadError}</div>}
             {slots === null && !loadError && (
               <div className="empty-state">Loading available slots…</div>
-            )}
-            {slots !== null && slots.length === 0 && !loadError && (
-              <div className="empty-state">
-                😔 All slots are currently taken. Please check back soon — new times are
-                added regularly!
-              </div>
             )}
 
             {grouped.map(([day, daySlots]) => (
