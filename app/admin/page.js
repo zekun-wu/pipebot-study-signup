@@ -4,7 +4,6 @@ import { useEffect, useMemo, useState } from "react";
 
 const DAY_START_MIN = 8 * 60; // calendar shows 08:00
 const DAY_END_MIN = 20 * 60; // … to 20:00
-const SNAP_MIN = 30; // click snaps to 30 minutes
 const PX_PER_30MIN = 26;
 const SLOT_MINUTES = 60; // fixed study duration
 
@@ -186,15 +185,11 @@ export default function AdminPage() {
     }
   }
 
-  function handleColumnClick(e, day) {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const offsetY = e.clientY - rect.top;
-    const snapped =
-      Math.floor(offsetY / PX_PER_30MIN) * SNAP_MIN + DAY_START_MIN;
+  function handleHourClick(day, minutes) {
     const start = new Date(day);
-    start.setHours(0, snapped, 0, 0);
+    start.setHours(0, minutes, 0, 0);
     if (start.getTime() < Date.now()) {
-      setError("That time is in the past — pick a future time.");
+      setError("That time is in the past — pick a future hour.");
       return;
     }
     createSlotAt(start);
@@ -281,9 +276,8 @@ export default function AdminPage() {
           </div>
         </div>
         <p className="hint">
-          Click anywhere on the calendar to add a <strong>1-hour study slot</strong> at
-          that time (snaps to 30 minutes, shown in {localTz}). Click ✕ on a slot to
-          remove it.
+          Click an hour on the calendar to add that <strong>1-hour study slot</strong>{" "}
+          (e.g. 10:00–11:00, shown in {localTz}). Click ✕ on a slot to remove it.
         </p>
 
         {message && <div className="ok-box">✅ {message}</div>}
@@ -316,18 +310,28 @@ export default function AdminPage() {
                     <span className="cal-day-name">{fmtDayShort(day)}</span>{" "}
                     <span className="cal-day-num">{day.getDate()}</span>
                   </div>
-                  <div
-                    className="cal-day-body"
-                    style={{ height: columnHeight }}
-                    onClick={(e) => handleColumnClick(e, day)}
-                  >
-                    {hours.map((m) => (
-                      <div
-                        key={m}
-                        className="cal-hour-line"
-                        style={{ top: ((m - DAY_START_MIN) / 30) * PX_PER_30MIN }}
-                      />
-                    ))}
+                  <div className="cal-day-body" style={{ height: columnHeight }}>
+                    {hours.map((m) => {
+                      const cellStart = new Date(day);
+                      cellStart.setHours(0, m, 0, 0);
+                      const cellPast = cellStart.getTime() < now;
+                      const label = `${String(Math.floor(m / 60)).padStart(2, "0")}:00–${String(Math.floor(m / 60) + 1).padStart(2, "0")}:00`;
+                      return (
+                        <div
+                          key={m}
+                          className={"cal-hour-cell" + (cellPast ? " past" : "")}
+                          style={{
+                            top: ((m - DAY_START_MIN) / 30) * PX_PER_30MIN,
+                            height: PX_PER_30MIN * 2,
+                          }}
+                          onClick={() => !cellPast && handleHourClick(day, m)}
+                        >
+                          {!cellPast && (
+                            <span className="cal-add-hint">＋ {label}</span>
+                          )}
+                        </div>
+                      );
+                    })}
                     {daySlots.map((slot) => {
                       const start = new Date(slot.start);
                       const minutes = start.getHours() * 60 + start.getMinutes();

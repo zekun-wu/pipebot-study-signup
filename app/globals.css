@@ -738,19 +738,43 @@ input:focus {
 
 .cal-day-body {
   position: relative;
-  cursor: copy;
 }
 
-.cal-day-body:hover {
-  background: #fdfbf3;
-}
-
-.cal-hour-line {
+.cal-hour-cell {
   position: absolute;
   left: 0;
   right: 0;
   border-top: 1px solid #f0e9d8;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cal-hour-cell.past {
+  cursor: default;
+  background: repeating-linear-gradient(
+    -45deg,
+    transparent 0 7px,
+    #f6f1e6 7px 9px
+  );
+}
+
+.cal-add-hint {
+  opacity: 0;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--leaf);
+  background: #f0f7e4;
+  border: 1px dashed #9dc35e;
+  border-radius: 7px;
+  padding: 2px 8px;
   pointer-events: none;
+  transition: opacity 0.1s;
+}
+
+.cal-hour-cell:hover .cal-add-hint {
+  opacity: 1;
 }
 
 .cal-slot {
