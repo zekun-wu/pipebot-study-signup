@@ -16,9 +16,13 @@ export default function Home() {
           </h1>
           <p className="lead">
             You give an AI agent a task. It thinks, clicks, types… and returns a result —
-            like magic. But what happened in between? In our study, you&apos;ll go
-            hands-on with a brand-new interactive system that opens up that black box:
-            watch an agent work, peek inside its process, and take the controls yourself.
+            like magic. But what happened in between? In our study, you&apos;ll try a new
+            interactive system that turns the agent&apos;s hidden process into a{" "}
+            <strong>visual workflow</strong>. You&apos;ll watch the agent work, explore
+            each step it took, inspect how information moved between apps, and check
+            whether anything went wrong. You&apos;ll also get to edit the workflow, rerun
+            selected steps, and adapt it for a new task — giving you more transparency,
+            control, and confidence in how AI agents get things done.
           </p>
           <div className="cta-row">
             <Link className="btn btn-primary" href="/register">
