@@ -14,15 +14,19 @@ export default function Home() {
             Ever wondered what your AI agent <span className="grad">actually did</span>{" "}
             behind the scenes?
           </h1>
-          <p className="lead" style={{ marginBottom: 28 }}>
+          <p className="lead" style={{ marginBottom: 20 }}>
             You give an AI agent a task. It thinks, clicks, types… and returns a result —
             like magic. But what happened in between?
           </p>
-          <p className="lead">
+          <p className="lead" style={{ marginBottom: 20 }}>
             In our study, you&apos;ll try a new interactive system that turns the
             agent&apos;s hidden process into a <strong>visual workflow</strong>.
+          </p>
+          <p className="lead" style={{ marginBottom: 20 }}>
             You&apos;ll watch the agent work, explore each step it took, inspect how
             information moved between apps, and check whether anything went wrong.
+          </p>
+          <p className="lead">
             You&apos;ll also get to edit the workflow, rerun selected steps, and adapt it
             for a new task — giving you more transparency, control, and confidence in how
             AI agents get things done.
