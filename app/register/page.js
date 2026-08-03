@@ -206,10 +206,7 @@ export default function RegisterPage() {
       <div className="page-head">
         <div className="hero-inner">
           <h1>Book your session 📅</h1>
-          <p>
-            Pick a time, tell us how you&apos;d like to join, and you&apos;re set. One
-            booking per person — about 1 hour, €15 Amazon gift card.
-          </p>
+          <p>Pick a time, tell us how you&apos;d like to join, and you&apos;re set.</p>
         </div>
       </div>
 
