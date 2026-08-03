@@ -639,6 +639,181 @@ input:focus {
   line-height: 1.6;
 }
 
+/* ---------- Admin calendar ---------- */
+
+.cal-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.cal-toolbar h2 {
+  font-size: 20px;
+}
+
+.cal-nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.cal-week-label {
+  font-weight: 700;
+  font-size: 14.5px;
+  margin-left: 6px;
+}
+
+.cal-scroll {
+  overflow-x: auto;
+}
+
+.cal-grid {
+  display: grid;
+  grid-template-columns: 56px repeat(7, minmax(96px, 1fr));
+  min-width: 760px;
+  border: 1.5px solid #e6dcc6;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.cal-day-head {
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 13.5px;
+  font-weight: 700;
+  border-bottom: 1.5px solid #e6dcc6;
+  background: #faf6ec;
+}
+
+.cal-day-head.today {
+  background: #eef6df;
+  color: var(--forest);
+}
+
+.cal-day-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  height: 24px;
+  border-radius: 50%;
+}
+
+.cal-day-head.today .cal-day-num {
+  background: var(--leaf-bright);
+  color: #fff;
+}
+
+.cal-times {
+  border-right: 1.5px solid #e6dcc6;
+}
+
+.cal-times-body {
+  position: relative;
+}
+
+.cal-time-label {
+  position: absolute;
+  right: 6px;
+  transform: translateY(-7px);
+  font-size: 11.5px;
+  color: var(--ink-soft);
+}
+
+.cal-day {
+  border-right: 1px solid #f0e9d8;
+}
+
+.cal-day:last-child {
+  border-right: none;
+}
+
+.cal-day-body {
+  position: relative;
+  cursor: copy;
+}
+
+.cal-day-body:hover {
+  background: #fdfbf3;
+}
+
+.cal-hour-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  border-top: 1px solid #f0e9d8;
+  pointer-events: none;
+}
+
+.cal-slot {
+  position: absolute;
+  left: 3px;
+  right: 3px;
+  border-radius: 8px;
+  padding: 3px 7px;
+  font-size: 11.5px;
+  line-height: 1.35;
+  overflow: hidden;
+  cursor: default;
+  z-index: 1;
+}
+
+.cal-slot-time {
+  font-weight: 800;
+  margin-right: 4px;
+}
+
+.cal-slot-label {
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cal-slot.free {
+  background: #f0f7e4;
+  border: 1.5px solid #9dc35e;
+  color: var(--forest);
+}
+
+.cal-slot.booked {
+  background: linear-gradient(120deg, var(--leaf-bright), var(--grass));
+  border: 1.5px solid var(--leaf);
+  color: #fff;
+}
+
+.cal-slot.past {
+  background: #f1ece1;
+  border: 1.5px solid #d8ceb8;
+  color: #857858;
+}
+
+.cal-slot-x {
+  position: absolute;
+  top: 2px;
+  right: 3px;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font-size: 11px;
+  font-weight: 800;
+  cursor: pointer;
+  opacity: 0.55;
+  padding: 2px 4px;
+}
+
+.cal-slot-x:hover {
+  opacity: 1;
+}
+
 /* ---------- Admin ---------- */
 
 .admin-wrap {

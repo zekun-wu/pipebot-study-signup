@@ -2,6 +2,51 @@
 
 import { useEffect, useMemo, useState } from "react";
 
+const DAY_START_MIN = 8 * 60; // calendar shows 08:00
+const DAY_END_MIN = 20 * 60; // … to 20:00
+const SNAP_MIN = 30; // click snaps to 30 minutes
+const PX_PER_30MIN = 26;
+const SLOT_MINUTES = 60; // fixed study duration
+
+function startOfWeek(date) {
+  const d = new Date(date);
+  d.setHours(0, 0, 0, 0);
+  const day = (d.getDay() + 6) % 7; // Monday = 0
+  d.setDate(d.getDate() - day);
+  return d;
+}
+
+function addDays(date, n) {
+  const d = new Date(date);
+  d.setDate(d.getDate() + n);
+  return d;
+}
+
+function sameDay(a, b) {
+  return (
+    a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate()
+  );
+}
+
+function fmtTime(date) {
+  return date.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
+}
+
+function fmtDayShort(date) {
+  return date.toLocaleDateString("en-GB", { weekday: "short" });
+}
+
+function fmtWeekLabel(weekStart) {
+  const end = addDays(weekStart, 6);
+  const opts = { day: "numeric", month: "short" };
+  return `${weekStart.toLocaleDateString("en-GB", opts)} – ${end.toLocaleDateString(
+    "en-GB",
+    { ...opts, year: "numeric" }
+  )}`;
+}
+
 function fmt(iso) {
   return new Intl.DateTimeFormat("en-GB", {
     weekday: "short",
@@ -22,14 +67,8 @@ export default function AdminPage() {
   const [slots, setSlots] = useState([]);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
-
-  // add-slot form state
-  const [date, setDate] = useState("");
-  const [fromTime, setFromTime] = useState("09:00");
-  const [toTime, setToTime] = useState("");
-  const [interval, setIntervalMin] = useState(90);
-  const [duration, setDuration] = useState(60);
   const [busy, setBusy] = useState(false);
+  const [weekStart, setWeekStart] = useState(() => startOfWeek(new Date()));
 
   const localTz = useMemo(() => {
     try {
@@ -83,46 +122,27 @@ export default function AdminPage() {
     setAuthed(false);
   }
 
-  function buildStarts() {
-    if (!date || !fromTime) return [];
-    const starts = [];
-    const first = new Date(`${date}T${fromTime}`);
-    if (Number.isNaN(first.getTime())) return [];
-    if (!toTime) return [first.toISOString()];
-    const last = new Date(`${date}T${toTime}`);
-    if (Number.isNaN(last.getTime()) || last < first) return [first.toISOString()];
-    const step = Math.max(Number(interval) || 60, 15) * 60 * 1000;
-    for (let t = first.getTime(); t <= last.getTime(); t += step) {
-      starts.push(new Date(t).toISOString());
-    }
-    return starts;
-  }
-
-  async function handleAddSlots(e) {
-    e.preventDefault();
+  async function createSlotAt(start) {
+    if (busy) return;
     setMessage("");
     setError("");
-    const starts = buildStarts();
-    if (starts.length === 0) {
-      setError("Please pick a date and start time.");
-      return;
-    }
     setBusy(true);
     try {
       const res = await fetch("/api/admin/slots", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ starts, durationMin: Number(duration) || 60 }),
+        body: JSON.stringify({
+          starts: [start.toISOString()],
+          durationMin: SLOT_MINUTES,
+        }),
       });
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error || "Could not create slots.");
+        setError(data.error || "Could not create the slot.");
+      } else if (data.created === 0) {
+        setError("A slot at that exact time already exists.");
       } else {
-        setMessage(
-          `Created ${data.created} slot${data.created === 1 ? "" : "s"}` +
-            (data.skipped ? ` (${data.skipped} already existed)` : "") +
-            "."
-        );
+        setMessage(`Added a 1-hour slot on ${fmt(start.toISOString())}.`);
         await loadSlots();
       }
     } finally {
@@ -130,13 +150,16 @@ export default function AdminPage() {
     }
   }
 
-  async function handleDeleteSlot(id) {
-    if (!confirm("Delete this slot? Any registration on it will be removed too.")) return;
+  async function handleDeleteSlot(slot) {
+    const warn = slot.registration
+      ? "This slot is BOOKED. Deleting it removes the registration too (no email is sent automatically). Delete anyway?"
+      : "Remove this free slot?";
+    if (!confirm(warn)) return;
     setMessage("");
     setError("");
-    const res = await fetch(`/api/admin/slots?id=${id}`, { method: "DELETE" });
+    const res = await fetch(`/api/admin/slots?id=${slot.id}`, { method: "DELETE" });
     if (res.ok) {
-      setMessage("Slot deleted.");
+      setMessage("Slot removed.");
       await loadSlots();
     } else {
       const data = await res.json().catch(() => ({}));
@@ -145,7 +168,11 @@ export default function AdminPage() {
   }
 
   async function handleCancelRegistration(id) {
-    if (!confirm("Cancel this registration? The slot becomes available again. (No email is sent automatically — remember to inform the participant.)"))
+    if (
+      !confirm(
+        "Cancel this registration? The slot becomes available again. (No email is sent automatically — remember to inform the participant.)"
+      )
+    )
       return;
     setMessage("");
     setError("");
@@ -157,6 +184,20 @@ export default function AdminPage() {
       const data = await res.json().catch(() => ({}));
       setError(data.error || "Could not cancel registration.");
     }
+  }
+
+  function handleColumnClick(e, day) {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const offsetY = e.clientY - rect.top;
+    const snapped =
+      Math.floor(offsetY / PX_PER_30MIN) * SNAP_MIN + DAY_START_MIN;
+    const start = new Date(day);
+    start.setHours(0, snapped, 0, 0);
+    if (start.getTime() < Date.now()) {
+      setError("That time is in the past — pick a future time.");
+      return;
+    }
+    createSlotAt(start);
   }
 
   if (checking) {
@@ -200,6 +241,15 @@ export default function AdminPage() {
     (s) => !s.registration && new Date(s.start).getTime() > now
   ).length;
 
+  const days = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
+  const hours = [];
+  for (let m = DAY_START_MIN; m < DAY_END_MIN; m += 60) {
+    hours.push(m);
+  }
+  const columnHeight = ((DAY_END_MIN - DAY_START_MIN) / 30) * PX_PER_30MIN;
+
+  const registrations = slots.filter((s) => s.registration);
+
   return (
     <main className="admin-wrap">
       <div className="admin-head">
@@ -215,83 +265,137 @@ export default function AdminPage() {
       </div>
 
       <div className="panel">
-        <h2>➕ Add slots</h2>
-        <p className="hint">
-          Times are entered in <strong>your</strong> timezone ({localTz}) and stored in
-          UTC. Leave &quot;until&quot; empty to add a single slot; fill it to create a
-          series (e.g. 09:00 until 16:30, every 90 min).
-        </p>
-        <form onSubmit={handleAddSlots}>
-          <div className="add-slot-row">
-            <div className="form-row">
-              <label>Date</label>
-              <input
-                type="date"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-                required
-              />
-            </div>
-            <div className="form-row">
-              <label>First slot at</label>
-              <input
-                type="time"
-                value={fromTime}
-                onChange={(e) => setFromTime(e.target.value)}
-                required
-              />
-            </div>
-            <div className="form-row">
-              <label>Until (optional)</label>
-              <input
-                type="time"
-                value={toTime}
-                onChange={(e) => setToTime(e.target.value)}
-              />
-            </div>
-            <div className="form-row">
-              <label>Every (min)</label>
-              <input
-                type="number"
-                min="15"
-                step="15"
-                value={interval}
-                onChange={(e) => setIntervalMin(e.target.value)}
-                style={{ width: 90 }}
-              />
-            </div>
-            <div className="form-row">
-              <label>Duration (min)</label>
-              <input
-                type="number"
-                min="15"
-                step="15"
-                value={duration}
-                onChange={(e) => setDuration(e.target.value)}
-                style={{ width: 90 }}
-              />
-            </div>
-            <button className="btn btn-primary" type="submit" disabled={busy}>
-              {busy ? "Adding…" : "Add"}
+        <div className="cal-toolbar">
+          <h2 style={{ margin: 0 }}>➕ Study slots</h2>
+          <div className="cal-nav">
+            <button className="btn-small" onClick={() => setWeekStart(addDays(weekStart, -7))}>
+              ← Prev
             </button>
+            <button className="btn-small" onClick={() => setWeekStart(startOfWeek(new Date()))}>
+              Today
+            </button>
+            <button className="btn-small" onClick={() => setWeekStart(addDays(weekStart, 7))}>
+              Next →
+            </button>
+            <span className="cal-week-label">{fmtWeekLabel(weekStart)}</span>
           </div>
-        </form>
+        </div>
+        <p className="hint">
+          Click anywhere on the calendar to add a <strong>1-hour study slot</strong> at
+          that time (snaps to 30 minutes, shown in {localTz}). Click ✕ on a slot to
+          remove it.
+        </p>
+
+        {message && <div className="ok-box">✅ {message}</div>}
+        {error && <div className="error-box">⚠️ {error}</div>}
+
+        <div className="cal-scroll">
+          <div className="cal-grid">
+            <div className="cal-times">
+              <div className="cal-day-head" />
+              <div className="cal-times-body" style={{ height: columnHeight }}>
+                {hours.map((m) => (
+                  <div
+                    key={m}
+                    className="cal-time-label"
+                    style={{ top: ((m - DAY_START_MIN) / 30) * PX_PER_30MIN }}
+                  >
+                    {String(Math.floor(m / 60)).padStart(2, "0")}:00
+                  </div>
+                ))}
+              </div>
+            </div>
+            {days.map((day) => {
+              const isToday = sameDay(day, new Date());
+              const daySlots = slots.filter((s) =>
+                sameDay(new Date(s.start), day)
+              );
+              return (
+                <div className="cal-day" key={day.toISOString()}>
+                  <div className={"cal-day-head" + (isToday ? " today" : "")}>
+                    <span className="cal-day-name">{fmtDayShort(day)}</span>{" "}
+                    <span className="cal-day-num">{day.getDate()}</span>
+                  </div>
+                  <div
+                    className="cal-day-body"
+                    style={{ height: columnHeight }}
+                    onClick={(e) => handleColumnClick(e, day)}
+                  >
+                    {hours.map((m) => (
+                      <div
+                        key={m}
+                        className="cal-hour-line"
+                        style={{ top: ((m - DAY_START_MIN) / 30) * PX_PER_30MIN }}
+                      />
+                    ))}
+                    {daySlots.map((slot) => {
+                      const start = new Date(slot.start);
+                      const minutes = start.getHours() * 60 + start.getMinutes();
+                      const top =
+                        ((minutes - DAY_START_MIN) / 30) * PX_PER_30MIN;
+                      const height =
+                        (slot.durationMin / 30) * PX_PER_30MIN - 3;
+                      if (
+                        minutes + slot.durationMin < DAY_START_MIN ||
+                        minutes > DAY_END_MIN
+                      ) {
+                        return null;
+                      }
+                      const isPast = start.getTime() < now;
+                      const reg = slot.registration;
+                      const cls = reg
+                        ? "cal-slot booked"
+                        : isPast
+                        ? "cal-slot past"
+                        : "cal-slot free";
+                      return (
+                        <div
+                          key={slot.id}
+                          className={cls}
+                          style={{ top: Math.max(top, 0), height }}
+                          onClick={(e) => e.stopPropagation()}
+                          title={
+                            reg
+                              ? `${reg.name || reg.email} (${reg.mode === "in_person" ? "in person" : "remote"})`
+                              : "Free slot"
+                          }
+                        >
+                          <span className="cal-slot-time">{fmtTime(start)}</span>
+                          <span className="cal-slot-label">
+                            {reg ? reg.name || reg.email : isPast ? "past" : "free"}
+                          </span>
+                          <button
+                            type="button"
+                            className="cal-slot-x"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteSlot(slot);
+                            }}
+                            aria-label="Delete slot"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
       </div>
 
-      {message && <div className="ok-box">✅ {message}</div>}
-      {error && <div className="error-box">⚠️ {error}</div>}
-
       <div className="panel">
-        <h2>📋 All slots &amp; registrations</h2>
-        {slots.length === 0 ? (
-          <div className="empty-state">No slots yet — add some above.</div>
+        <h2>📋 Registrations</h2>
+        {registrations.length === 0 ? (
+          <div className="empty-state">No registrations yet.</div>
         ) : (
           <div className="table-wrap">
             <table className="admin-table">
               <thead>
                 <tr>
                   <th>When ({localTz})</th>
-                  <th>Status</th>
                   <th>Participant</th>
                   <th>Mode</th>
                   <th>Background</th>
@@ -299,62 +403,30 @@ export default function AdminPage() {
                 </tr>
               </thead>
               <tbody>
-                {slots.map((slot) => {
-                  const isPast = new Date(slot.start).getTime() < now;
+                {registrations.map((slot) => {
                   const reg = slot.registration;
                   return (
                     <tr key={slot.id}>
+                      <td>{fmt(slot.start)}</td>
                       <td>
-                        {fmt(slot.start)}
-                        <div className="muted">{slot.durationMin} min</div>
+                        {reg.name || "—"}
+                        <div className="muted">{reg.email}</div>
+                        <div className="muted">tz: {reg.timezone}</div>
                       </td>
                       <td>
-                        {reg ? (
-                          <span className="tag booked">booked</span>
-                        ) : isPast ? (
-                          <span className="tag past">past</span>
+                        {reg.mode === "in_person" ? (
+                          <span className="tag inperson">in person 🍫</span>
                         ) : (
-                          <span className="tag free">free</span>
+                          <span className="tag remote">remote</span>
                         )}
                       </td>
+                      <td>{reg.background || "—"}</td>
                       <td>
-                        {reg ? (
-                          <>
-                            {reg.name || "—"}
-                            <div className="muted">{reg.email}</div>
-                            <div className="muted">tz: {reg.timezone}</div>
-                          </>
-                        ) : (
-                          "—"
-                        )}
-                      </td>
-                      <td>
-                        {reg ? (
-                          reg.mode === "in_person" ? (
-                            <span className="tag inperson">in person 🍫</span>
-                          ) : (
-                            <span className="tag remote">remote</span>
-                          )
-                        ) : (
-                          "—"
-                        )}
-                      </td>
-                      <td>{reg?.background || "—"}</td>
-                      <td>
-                        {reg && (
-                          <button
-                            className="btn-small danger"
-                            onClick={() => handleCancelRegistration(reg.id)}
-                            style={{ marginRight: 8 }}
-                          >
-                            Cancel booking
-                          </button>
-                        )}
                         <button
                           className="btn-small danger"
-                          onClick={() => handleDeleteSlot(slot.id)}
+                          onClick={() => handleCancelRegistration(reg.id)}
                         >
-                          Delete slot
+                          Cancel booking
                         </button>
                       </td>
                     </tr>
