@@ -266,30 +266,41 @@ export default function RegisterPage() {
             </h2>
             <div className="mode-grid">
               <div
-                className={"mode-card" + (mode === "remote" ? " selected" : "")}
+                className={"mode-card compact" + (mode === "remote" ? " selected" : "")}
                 onClick={() => setMode("remote")}
                 role="button"
                 tabIndex={0}
                 onKeyDown={(e) => e.key === "Enter" && setMode("remote")}
               >
                 <h3>💻 Remotely</h3>
-                <p>
-                  Join from anywhere in the world. Please make sure{" "}
-                  <strong>Microsoft Teams is installed on your computer</strong> before
-                  the session and that you can comfortably join and manage a remote
-                  meeting (including screen sharing). We&apos;ll send you the meeting
-                  link by email.
-                </p>
+                <p>Via Microsoft Teams, from anywhere</p>
               </div>
               <div
-                className={"mode-card" + (mode === "in_person" ? " selected" : "")}
+                className={
+                  "mode-card compact" + (mode === "in_person" ? " selected" : "")
+                }
                 onClick={() => setMode("in_person")}
                 role="button"
                 tabIndex={0}
                 onKeyDown={(e) => e.key === "Enter" && setMode("in_person")}
               >
                 <h3>🏛️ In person</h3>
-                <p>Come visit us at Saarland University:</p>
+                <p>At Saarland University, Saarbrücken</p>
+              </div>
+            </div>
+            {mode === "remote" && (
+              <div className="mode-detail">
+                <p>
+                  Please make sure{" "}
+                  <strong>Microsoft Teams is installed on your computer</strong> before
+                  the session and that you can comfortably join and manage a remote
+                  meeting (including screen sharing). We&apos;ll send you the meeting
+                  link by email.
+                </p>
+              </div>
+            )}
+            {mode === "in_person" && (
+              <div className="mode-detail">
                 <div className="address-box">
                   📍 <strong>Room 3.12, Building E1 7</strong>
                   <br />
@@ -304,7 +315,7 @@ export default function RegisterPage() {
                   chocolate on top of the gift card!
                 </div>
               </div>
-            </div>
+            )}
           </div>
 
           <div className="panel">
