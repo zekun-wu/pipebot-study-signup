@@ -19,8 +19,6 @@ export default function Home() {
             like magic. But what happened in between? In our study, you&apos;ll go
             hands-on with a brand-new interactive system that opens up that black box:
             watch an agent work, peek inside its process, and take the controls yourself.
-            Your feedback will directly shape how the next generation of AI agents is
-            built.
           </p>
           <div className="cta-row">
             <Link className="btn btn-primary" href="/register">
