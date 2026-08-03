@@ -211,58 +211,8 @@ export default function RegisterPage() {
         <form onSubmit={handleSubmit}>
           <div className="panel">
             <h2>
-              <span className="step-num">1</span> Choose a time slot
-            </h2>
-            <div className="tz-row">
-              <label htmlFor="tz">
-                <strong>🌍 Your timezone:</strong>
-              </label>
-              <select
-                id="tz"
-                value={timezone}
-                onChange={(e) => setTimezone(e.target.value)}
-              >
-                {!timezones.includes(timezone) && (
-                  <option value={timezone}>{timezone}</option>
-                )}
-                {timezones.map((tz) => (
-                  <option key={tz} value={tz}>
-                    {tz}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {loadError && <div className="error-box">{loadError}</div>}
-            {slots === null && !loadError && (
-              <div className="empty-state">Loading available slots…</div>
-            )}
-
-            {grouped.map(([day, daySlots]) => (
-              <div className="day-group" key={day}>
-                <div className="day-label">{day}</div>
-                <div className="slot-grid">
-                  {daySlots.map((slot) => (
-                    <button
-                      type="button"
-                      key={slot.id}
-                      className={
-                        "slot-btn" +
-                        (selectedSlot?.id === slot.id ? " selected" : "")
-                      }
-                      onClick={() => setSelectedSlot(slot)}
-                    >
-                      {formatTime(slot.start, timezone)}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div className="panel">
-            <h2>
-              <span className="step-num">2</span> How would you like to take part?
+              <span className="step-num">1</span> How would you like to take part in our
+              study?
             </h2>
             <div className="mode-grid">
               <div
@@ -318,13 +268,64 @@ export default function RegisterPage() {
             )}
           </div>
 
-          <div className="panel">
+          {mode && (
+          <div className="panel appear">
+            <h2>
+              <span className="step-num">2</span> Choose a time slot
+            </h2>
+            <div className="tz-row">
+              <label htmlFor="tz">
+                <strong>🌍 Your timezone:</strong>
+              </label>
+              <select
+                id="tz"
+                value={timezone}
+                onChange={(e) => setTimezone(e.target.value)}
+              >
+                {!timezones.includes(timezone) && (
+                  <option value={timezone}>{timezone}</option>
+                )}
+                {timezones.map((tz) => (
+                  <option key={tz} value={tz}>
+                    {tz}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {loadError && <div className="error-box">{loadError}</div>}
+            {slots === null && !loadError && (
+              <div className="empty-state">Loading available slots…</div>
+            )}
+
+            {grouped.map(([day, daySlots]) => (
+              <div className="day-group" key={day}>
+                <div className="day-label">{day}</div>
+                <div className="slot-grid">
+                  {daySlots.map((slot) => (
+                    <button
+                      type="button"
+                      key={slot.id}
+                      className={
+                        "slot-btn" +
+                        (selectedSlot?.id === slot.id ? " selected" : "")
+                      }
+                      onClick={() => setSelectedSlot(slot)}
+                    >
+                      {formatTime(slot.start, timezone)}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+          )}
+
+          {mode && selectedSlot && (
+          <div className="panel appear">
             <h2>
               <span className="step-num">3</span> Your details
             </h2>
-            <p className="hint">
-              One slot per person — we&apos;ll send your confirmation here.
-            </p>
             <div className="form-row">
               <label htmlFor="name">Name</label>
               <input
@@ -367,6 +368,7 @@ export default function RegisterPage() {
               {submitting ? "Booking…" : "Confirm my session 🎉"}
             </button>
           </div>
+          )}
         </form>
         <p className="muted" style={{ textAlign: "center" }}>
           <Link href="/">← Back to study info</Link>
