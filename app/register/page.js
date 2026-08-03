@@ -1,7 +1,94 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import { CONSENT_TITLE, CONSENT_SECTIONS } from "@/lib/consent";
+
+function SignaturePad({ onChange }) {
+  const canvasRef = useRef(null);
+  const drawing = useRef(false);
+  const hasInk = useRef(false);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    const ratio = window.devicePixelRatio || 1;
+    const cssW = canvas.offsetWidth;
+    const cssH = canvas.offsetHeight;
+    canvas.width = cssW * ratio;
+    canvas.height = cssH * ratio;
+    const ctx = canvas.getContext("2d");
+    ctx.scale(ratio, ratio);
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, cssW, cssH);
+    ctx.strokeStyle = "#1f2937";
+    ctx.lineWidth = 2;
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+  }, []);
+
+  const pos = (e) => {
+    const rect = canvasRef.current.getBoundingClientRect();
+    return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+  };
+
+  const start = (e) => {
+    e.preventDefault();
+    canvasRef.current.setPointerCapture?.(e.pointerId);
+    drawing.current = true;
+    const ctx = canvasRef.current.getContext("2d");
+    const { x, y } = pos(e);
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+  };
+
+  const move = (e) => {
+    if (!drawing.current) return;
+    e.preventDefault();
+    const ctx = canvasRef.current.getContext("2d");
+    const { x, y } = pos(e);
+    ctx.lineTo(x, y);
+    ctx.stroke();
+    if (!hasInk.current) {
+      hasInk.current = true;
+    }
+    onChange(canvasRef.current.toDataURL("image/png"));
+  };
+
+  const end = () => {
+    drawing.current = false;
+  };
+
+  const clear = () => {
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext("2d");
+    ctx.save();
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.restore();
+    hasInk.current = false;
+    onChange("");
+  };
+
+  return (
+    <div>
+      <canvas
+        ref={canvasRef}
+        className="sig-canvas"
+        onPointerDown={start}
+        onPointerMove={move}
+        onPointerUp={end}
+        onPointerLeave={end}
+      />
+      <div className="sig-actions">
+        <span className="muted">Draw your signature above (mouse or touch)</span>
+        <button type="button" className="btn-small" onClick={clear}>
+          Clear
+        </button>
+      </div>
+    </div>
+  );
+}
 
 const FALLBACK_TIMEZONES = [
   "Europe/Berlin",
@@ -69,6 +156,8 @@ export default function RegisterPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [background, setBackground] = useState("");
+  const [consentAgreed, setConsentAgreed] = useState(false);
+  const [signature, setSignature] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
   const [success, setSuccess] = useState(null);
@@ -115,7 +204,11 @@ export default function RegisterPage() {
       return;
     }
     if (!mode) {
-      setSubmitError("Please choose how you'd like to take part (step 2).");
+      setSubmitError("Please choose how you'd like to take part (step 1).");
+      return;
+    }
+    if (!consentAgreed || !signature) {
+      setSubmitError("Please read the consent form, tick the agreement box, and sign it (step 3).");
       return;
     }
     setSubmitting(true);
@@ -130,6 +223,8 @@ export default function RegisterPage() {
           mode,
           timezone,
           background,
+          consent: consentAgreed,
+          signature,
         }),
       });
       const data = await res.json();
@@ -320,7 +415,65 @@ export default function RegisterPage() {
           {mode && selectedSlot && (
           <div className="panel appear">
             <h2>
-              <span className="step-num">3</span> Your details
+              <span className="step-num">3</span> Consent form
+            </h2>
+            <p className="hint">
+              Please read the consent form below, then confirm and sign to continue.
+            </p>
+            <div className="consent-box">
+              <h3>{CONSENT_TITLE}</h3>
+              {CONSENT_SECTIONS.map((section) => (
+                <div key={section.heading}>
+                  <h4>{section.heading}</h4>
+                  {(section.paragraphs || []).map((p, i) => (
+                    <p key={i}>{p}</p>
+                  ))}
+                  {section.bullets && (
+                    <ul>
+                      {section.bullets.map((b, i) => (
+                        <li key={i}>{b}</li>
+                      ))}
+                    </ul>
+                  )}
+                  {(section.paragraphsAfter || []).map((p, i) => (
+                    <p key={i}>{p}</p>
+                  ))}
+                  {section.bulletsAfter && (
+                    <ul>
+                      {section.bulletsAfter.map((b, i) => (
+                        <li key={i}>{b}</li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              ))}
+            </div>
+            <label className="consent-check">
+              <input
+                type="checkbox"
+                checked={consentAgreed}
+                onChange={(e) => setConsentAgreed(e.target.checked)}
+              />
+              <span>
+                I have read and understood the consent form, and I agree to take part in
+                the study.
+              </span>
+            </label>
+            {consentAgreed && (
+              <div className="mode-detail">
+                <p style={{ marginBottom: 8 }}>
+                  <strong>Your signature:</strong>
+                </p>
+                <SignaturePad onChange={setSignature} />
+              </div>
+            )}
+          </div>
+          )}
+
+          {mode && selectedSlot && consentAgreed && signature && (
+          <div className="panel appear">
+            <h2>
+              <span className="step-num">4</span> Your details
             </h2>
             <div className="form-row">
               <label htmlFor="name">Name</label>

@@ -20,6 +20,8 @@ export async function POST(request) {
   const mode = body.mode === "in_person" ? "in_person" : body.mode === "remote" ? "remote" : null;
   const timezone = String(body.timezone || "Europe/Berlin").slice(0, 64);
   const background = String(body.background || "").trim().slice(0, 200);
+  const consent = body.consent === true;
+  const signature = String(body.signature || "");
 
   if (!Number.isInteger(slotId) || slotId <= 0) {
     return NextResponse.json({ error: "Please pick a time slot." }, { status: 400 });
@@ -30,6 +32,18 @@ export async function POST(request) {
   if (!mode) {
     return NextResponse.json(
       { error: "Please choose how you want to take part (remote or in person)." },
+      { status: 400 }
+    );
+  }
+  if (!consent) {
+    return NextResponse.json(
+      { error: "Please confirm that you have read and agree to the consent form." },
+      { status: 400 }
+    );
+  }
+  if (!signature.startsWith("data:image/png;base64,") || signature.length > 400000) {
+    return NextResponse.json(
+      { error: "Please sign the consent form before registering." },
       { status: 400 }
     );
   }
@@ -54,10 +68,10 @@ export async function POST(request) {
     let inserted;
     try {
       inserted = await pool.query(
-        `INSERT INTO registrations (slot_id, email, name, mode, timezone, background)
-         VALUES ($1, $2, $3, $4, $5, $6)
+        `INSERT INTO registrations (slot_id, email, name, mode, timezone, background, signature)
+         VALUES ($1, $2, $3, $4, $5, $6, $7)
          RETURNING id`,
-        [slotId, email, name, mode, timezone, background]
+        [slotId, email, name, mode, timezone, background, signature]
       );
     } catch (err) {
       if (err.code === "23505") {
@@ -82,6 +96,7 @@ export async function POST(request) {
       mode,
       timezone,
       background,
+      signature,
       startIso: slot.start_utc.toISOString(),
       durationMin: slot.duration_min,
     };
