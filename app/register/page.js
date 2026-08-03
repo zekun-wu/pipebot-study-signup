@@ -129,6 +129,42 @@ function detectTimezone() {
   }
 }
 
+const DAY_MS = 86400000;
+
+// Build a list of consecutive day descriptors in the given timezone,
+// starting one week before today — avoids manual timezone arithmetic.
+function buildDayInfos(timeZone) {
+  const keyFmt = new Intl.DateTimeFormat("en-CA", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
+  const wdFmt = new Intl.DateTimeFormat("en-GB", { timeZone, weekday: "short" });
+  const headFmt = new Intl.DateTimeFormat("en-GB", {
+    timeZone,
+    day: "numeric",
+    month: "short",
+  });
+  const todayKey = keyFmt.format(new Date());
+  const infos = [];
+  const seen = new Set();
+  const start = Date.now() - 7 * DAY_MS;
+  for (let i = 0; i < 60; i++) {
+    const t = new Date(start + i * DAY_MS);
+    const key = keyFmt.format(t);
+    if (seen.has(key)) continue;
+    seen.add(key);
+    infos.push({
+      key,
+      weekday: wdFmt.format(t),
+      head: headFmt.format(t),
+      isToday: key === todayKey,
+    });
+  }
+  return infos;
+}
+
 function formatDay(iso, timeZone) {
   return new Intl.DateTimeFormat("en-GB", {
     weekday: "long",
@@ -158,6 +194,8 @@ export default function RegisterPage() {
   const [background, setBackground] = useState("");
   const [consentAgreed, setConsentAgreed] = useState(false);
   const [signature, setSignature] = useState("");
+  const [weekOffset, setWeekOffset] = useState(0);
+  const [autoJumped, setAutoJumped] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
   const [success, setSuccess] = useState(null);
@@ -185,16 +223,60 @@ export default function RegisterPage() {
     loadSlots();
   }, []);
 
-  const grouped = useMemo(() => {
-    if (!slots) return [];
-    const byDay = new Map();
-    for (const slot of slots) {
-      const day = formatDay(slot.start, timezone);
-      if (!byDay.has(day)) byDay.set(day, []);
-      byDay.get(day).push(slot);
+  const dayInfos = useMemo(() => buildDayInfos(timezone), [timezone]);
+
+  const monIdx = useMemo(() => {
+    let idx = dayInfos.findIndex((d) => d.isToday);
+    if (idx < 0) idx = 7;
+    while (idx > 0 && dayInfos[idx].weekday !== "Mon") idx -= 1;
+    return idx;
+  }, [dayInfos]);
+
+  const slotsByDay = useMemo(() => {
+    const keyFmt = new Intl.DateTimeFormat("en-CA", {
+      timeZone: timezone,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    });
+    const map = new Map();
+    for (const slot of slots || []) {
+      const key = keyFmt.format(new Date(slot.start));
+      if (!map.has(key)) map.set(key, []);
+      map.get(key).push(slot);
     }
-    return Array.from(byDay.entries());
+    for (const list of map.values()) {
+      list.sort((a, b) => new Date(a.start) - new Date(b.start));
+    }
+    return map;
   }, [slots, timezone]);
+
+  // Jump to the first week that actually has available slots.
+  useEffect(() => {
+    if (autoJumped || !slots || slots.length === 0) return;
+    const first = slots
+      .map((s) => new Date(s.start).getTime())
+      .sort((a, b) => a - b)[0];
+    const keyFmt = new Intl.DateTimeFormat("en-CA", {
+      timeZone: timezone,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    });
+    const firstKey = keyFmt.format(new Date(first));
+    const idx = dayInfos.findIndex((d) => d.key === firstKey);
+    if (idx >= 0) {
+      setWeekOffset(Math.max(0, Math.floor((idx - monIdx) / 7)));
+    }
+    setAutoJumped(true);
+  }, [slots, autoJumped, dayInfos, monIdx, timezone]);
+
+  const weekDays = useMemo(() => {
+    const startIdx = monIdx + weekOffset * 7;
+    return dayInfos.slice(startIdx, startIdx + 7);
+  }, [dayInfos, monIdx, weekOffset]);
+
+  const weekHasSlots = weekDays.some((d) => slotsByDay.has(d.key));
 
   async function handleSubmit(event) {
     event.preventDefault();
@@ -389,26 +471,86 @@ export default function RegisterPage() {
               <div className="empty-state">Loading available slots…</div>
             )}
 
-            {grouped.map(([day, daySlots]) => (
-              <div className="day-group" key={day}>
-                <div className="day-label">{day}</div>
-                <div className="slot-grid">
-                  {daySlots.map((slot) => (
-                    <button
-                      type="button"
-                      key={slot.id}
-                      className={
-                        "slot-btn" +
-                        (selectedSlot?.id === slot.id ? " selected" : "")
-                      }
-                      onClick={() => setSelectedSlot(slot)}
-                    >
-                      {formatTime(slot.start, timezone)}
-                    </button>
-                  ))}
+            {slots !== null && !loadError && (
+              <>
+                <div className="uweek-nav">
+                  <button
+                    type="button"
+                    className="btn-small"
+                    onClick={() => setWeekOffset(weekOffset - 1)}
+                    disabled={weekOffset <= 0}
+                  >
+                    ← Prev week
+                  </button>
+                  <span className="uweek-label">
+                    {weekDays[0]?.head} – {weekDays[6]?.head}
+                  </span>
+                  <button
+                    type="button"
+                    className="btn-small"
+                    onClick={() => setWeekOffset(weekOffset + 1)}
+                  >
+                    Next week →
+                  </button>
                 </div>
-              </div>
-            ))}
+                <div className="uweek-scroll">
+                  <div className="uweek-grid">
+                    {weekDays.map((day) => {
+                      const daySlots = slotsByDay.get(day.key) || [];
+                      return (
+                        <div className="uweek-day" key={day.key}>
+                          <div
+                            className={
+                              "uweek-day-head" + (day.isToday ? " today" : "")
+                            }
+                          >
+                            <div className="uweek-day-name">{day.weekday}</div>
+                            <div className="uweek-day-date">{day.head}</div>
+                          </div>
+                          <div className="uweek-day-body">
+                            {daySlots.length === 0 ? (
+                              <div className="uweek-empty">–</div>
+                            ) : (
+                              daySlots.map((slot) => (
+                                <button
+                                  type="button"
+                                  key={slot.id}
+                                  className={
+                                    "slot-btn cal" +
+                                    (selectedSlot?.id === slot.id
+                                      ? " selected"
+                                      : "")
+                                  }
+                                  onClick={() =>
+                                    setSelectedSlot(
+                                      selectedSlot?.id === slot.id ? null : slot
+                                    )
+                                  }
+                                >
+                                  {formatTime(slot.start, timezone)}
+                                </button>
+                              ))
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+                {!weekHasSlots && (
+                  <div className="empty-state">
+                    No free slots in this week — try another week.
+                  </div>
+                )}
+                {selectedSlot && (
+                  <div className="ok-box" style={{ marginTop: 14 }}>
+                    ✅ Selected: {formatDay(selectedSlot.start, timezone)},{" "}
+                    {formatTime(selectedSlot.start, timezone)} ({timezone}) — you can
+                    pick one slot only.
+                  </div>
+                )}
+              </>
+            )}
           </div>
           )}
 

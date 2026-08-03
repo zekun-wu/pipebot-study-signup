@@ -354,6 +354,92 @@ input:focus {
   border-color: var(--leaf);
 }
 
+/* Participant week calendar */
+
+.uweek-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.uweek-label {
+  font-weight: 700;
+  font-size: 14.5px;
+}
+
+.uweek-scroll {
+  overflow-x: auto;
+}
+
+.uweek-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(88px, 1fr));
+  min-width: 640px;
+  border: 1.5px solid #e6dcc6;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.uweek-day {
+  border-right: 1px solid #f0e9d8;
+  display: flex;
+  flex-direction: column;
+}
+
+.uweek-day:last-child {
+  border-right: none;
+}
+
+.uweek-day-head {
+  text-align: center;
+  padding: 8px 4px;
+  border-bottom: 1.5px solid #e6dcc6;
+  background: #faf6ec;
+}
+
+.uweek-day-head.today {
+  background: #eef6df;
+}
+
+.uweek-day-name {
+  font-weight: 800;
+  font-size: 13px;
+}
+
+.uweek-day-head.today .uweek-day-name {
+  color: var(--forest);
+}
+
+.uweek-day-date {
+  font-size: 12px;
+  color: var(--ink-soft);
+}
+
+.uweek-day-body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 6px;
+  min-height: 110px;
+}
+
+.uweek-empty {
+  text-align: center;
+  color: #c9bc9f;
+  padding-top: 14px;
+}
+
+.slot-btn.cal {
+  width: 100%;
+  padding: 8px 4px;
+  text-align: center;
+  font-size: 13.5px;
+}
+
 .day-group {
   margin-bottom: 18px;
 }
