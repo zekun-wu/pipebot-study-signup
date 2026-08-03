@@ -33,36 +33,6 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="section">
-        <h2>What you&apos;ll do 🚀</h2>
-        <p>
-          This is not a boring survey — it&apos;s a hands-on session. Together with a
-          researcher, you&apos;ll try out a new interface for working with AI agents,
-          explore what the agent did step by step, and experiment with steering it your
-          way. No preparation needed, and there are no right or wrong answers — we&apos;re
-          studying the system, not you. We&apos;ll keep the full details a surprise until
-          the session, but if you&apos;ve ever wished you could see what an AI is really
-          up to, you&apos;ll feel right at home.
-        </p>
-        <div className="card-grid">
-          <div className="card">
-            <div className="emoji">🕵️</div>
-            <h3>Look under the hood</h3>
-            <p>See how an AI agent tackles real tasks — every step, not just the final answer.</p>
-          </div>
-          <div className="card">
-            <div className="emoji">🎛️</div>
-            <h3>Take the controls</h3>
-            <p>Inspect, tweak, and re-run parts of the agent&apos;s work with a novel interactive tool.</p>
-          </div>
-          <div className="card">
-            <div className="emoji">🔮</div>
-            <h3>Shape the future</h3>
-            <p>Your impressions feed directly into research on how humans and AI agents should collaborate.</p>
-          </div>
-        </div>
-      </section>
-
       <section className="section" id="who">
         <h2>Who we&apos;re looking for 🙌</h2>
         <p>
