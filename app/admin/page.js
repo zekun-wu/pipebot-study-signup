@@ -368,6 +368,20 @@ export default function AdminPage() {
                           <span className="cal-slot-label">
                             {reg ? reg.name || reg.email : isPast ? "past" : "free"}
                           </span>
+                          {reg && (
+                            <button
+                              type="button"
+                              className="cal-slot-x undo"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleCancelRegistration(reg.id);
+                              }}
+                              aria-label="Cancel booking, make slot available again"
+                              title="Cancel booking — slot becomes available again"
+                            >
+                              ↺
+                            </button>
+                          )}
                           <button
                             type="button"
                             className="cal-slot-x"
@@ -376,6 +390,7 @@ export default function AdminPage() {
                               handleDeleteSlot(slot);
                             }}
                             aria-label="Delete slot"
+                            title="Delete this slot entirely"
                           >
                             ✕
                           </button>

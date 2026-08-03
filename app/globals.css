@@ -838,6 +838,12 @@ input:focus {
   opacity: 1;
 }
 
+.cal-slot-x.undo {
+  right: 20px;
+  font-size: 13px;
+  top: 0;
+}
+
 /* ---------- Admin ---------- */
 
 .admin-wrap {
