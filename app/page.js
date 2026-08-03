@@ -115,11 +115,6 @@ export default function Home() {
           just sign up and mention what you&apos;ve used.
         </p>
       </section>
-
-      <footer className="footer">
-        AI Agents &amp; Workflows User Study · Saarland University · Questions? Reply to
-        your confirmation email and we&apos;ll get back to you.
-      </footer>
     </main>
   );
 }
