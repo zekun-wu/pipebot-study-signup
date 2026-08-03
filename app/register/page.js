@@ -251,19 +251,15 @@ export default function RegisterPage() {
             )}
             {mode === "in_person" && (
               <div className="mode-detail">
-                <div className="address-box">
-                  📍 <strong>Room 3.12, Building E1 7</strong>
-                  <br />
-                  Uni-Campus N 1<br />
-                  66123 Saarbrücken
-                  <br />
-                  Germany
-                </div>
-                <div className="choco">
-                  🍫 <strong>Bonus:</strong> if you&apos;re at Saarland University, we
-                  warmly encourage you to come in person — you&apos;ll get an extra
-                  chocolate on top of the gift card!
-                </div>
+                <p>
+                  Please come to the office:{" "}
+                  <strong>
+                    Room 3.12, Building E1 7, Uni-Campus N 1, 66123 Saarbrücken, Germany
+                  </strong>
+                  . If you&apos;re around the campus, we do encourage you to come in
+                  person — we&apos;ll give you a bonus <strong>chocolate</strong> 🍫 on
+                  top of the gift card!
+                </p>
               </div>
             )}
           </div>
