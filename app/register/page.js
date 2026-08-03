@@ -131,6 +131,9 @@ function detectTimezone() {
 
 const DAY_MS = 86400000;
 
+// The study ends before September — don't offer weeks beyond this date.
+const STUDY_END_KEY = "2026-08-31";
+
 // Build a list of consecutive day descriptors in the given timezone,
 // starting one week before today — avoids manual timezone arithmetic.
 function buildDayInfos(timeZone) {
@@ -266,10 +269,19 @@ export default function RegisterPage() {
     const firstKey = keyFmt.format(new Date(first));
     const idx = dayInfos.findIndex((d) => d.key === firstKey);
     if (idx >= 0) {
-      setWeekOffset(Math.max(0, Math.floor((idx - monIdx) / 7)));
+      setWeekOffset(Math.min(maxWeekOffset, Math.max(0, Math.floor((idx - monIdx) / 7))));
     }
     setAutoJumped(true);
-  }, [slots, autoJumped, dayInfos, monIdx, timezone]);
+  }, [slots, autoJumped, dayInfos, monIdx, timezone, maxWeekOffset]);
+
+  const maxWeekOffset = useMemo(() => {
+    let lastIdx = -1;
+    dayInfos.forEach((d, i) => {
+      if (d.key <= STUDY_END_KEY) lastIdx = i;
+    });
+    if (lastIdx < monIdx) return 0;
+    return Math.floor((lastIdx - monIdx) / 7);
+  }, [dayInfos, monIdx]);
 
   const weekDays = useMemo(() => {
     const startIdx = monIdx + weekOffset * 7;
@@ -489,6 +501,7 @@ export default function RegisterPage() {
                     type="button"
                     className="btn-small"
                     onClick={() => setWeekOffset(weekOffset + 1)}
+                    disabled={weekOffset >= maxWeekOffset}
                   >
                     Next week →
                   </button>
