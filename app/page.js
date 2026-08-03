@@ -3,12 +3,12 @@ import Link from "next/link";
 export default function Home() {
   return (
     <main>
-      <section className="hero">
+      <section className="hero-light">
         <div className="hero-inner">
           <div className="badge-row">
-            <span className="badge">⏱️ About 1 hour</span>
-            <span className="badge">🎁 €15 Amazon gift card</span>
-            <span className="badge">🌍 Remote or in person</span>
+            <span className="badge light">⏱️ About 1 hour</span>
+            <span className="badge light">🎁 €15 Amazon gift card</span>
+            <span className="badge light">🌍 Remote or in person</span>
           </div>
           <h1>
             Ever wondered what your AI agent <span className="grad">actually did</span>{" "}
@@ -26,13 +26,19 @@ export default function Home() {
             <Link className="btn btn-primary" href="/register">
               Pick your time slot →
             </Link>
-            <a className="btn btn-ghost" href="#who">
+            <a className="btn btn-outline" href="#who">
               Am I a good fit?
             </a>
           </div>
         </div>
+        <img
+          className="hero-art"
+          src="/caterpillar.png"
+          alt="A friendly caterpillar whose body is a chain of connected app and AI services"
+        />
       </section>
 
+      <div className="dark-zone">
       <section className="section" id="who">
         <h2>Who we&apos;re looking for 🙌</h2>
         <p>
@@ -113,6 +119,7 @@ export default function Home() {
         AI Agents &amp; Workflows User Study · Saarland University · Questions? Reply to
         your confirmation email and we&apos;ll get back to you.
       </footer>
+      </div>
     </main>
   );
 }
