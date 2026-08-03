@@ -107,11 +107,6 @@ export default function Home() {
           Similar tools count too — if you&apos;re unsure whether your experience fits,
           just sign up and mention what you&apos;ve used.
         </p>
-        <div className="cta-row" style={{ marginTop: 30 }}>
-          <Link className="btn btn-primary" href="/register">
-            Sounds fun — sign me up! →
-          </Link>
-        </div>
       </section>
 
       <footer className="footer">
