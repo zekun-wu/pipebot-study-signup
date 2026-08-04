@@ -205,6 +205,9 @@ export default function RegisterPage() {
 
   const timezones = useMemo(() => getAllTimezones(), []);
 
+  // In-person sessions happen in Saarbrücken — timezone is fixed to Europe/Berlin.
+  const effectiveTz = mode === "in_person" ? "Europe/Berlin" : timezone;
+
   useEffect(() => {
     setTimezone(detectTimezone());
   }, []);
@@ -226,7 +229,7 @@ export default function RegisterPage() {
     loadSlots();
   }, []);
 
-  const dayInfos = useMemo(() => buildDayInfos(timezone), [timezone]);
+  const dayInfos = useMemo(() => buildDayInfos(effectiveTz), [effectiveTz]);
 
   const monIdx = useMemo(() => {
     let idx = dayInfos.findIndex((d) => d.isToday);
@@ -237,7 +240,7 @@ export default function RegisterPage() {
 
   const slotsByDay = useMemo(() => {
     const keyFmt = new Intl.DateTimeFormat("en-CA", {
-      timeZone: timezone,
+      timeZone: effectiveTz,
       year: "numeric",
       month: "2-digit",
       day: "2-digit",
@@ -252,7 +255,7 @@ export default function RegisterPage() {
       list.sort((a, b) => new Date(a.start) - new Date(b.start));
     }
     return map;
-  }, [slots, timezone]);
+  }, [slots, effectiveTz]);
 
   const maxWeekOffset = useMemo(() => {
     let lastIdx = -1;
@@ -270,7 +273,7 @@ export default function RegisterPage() {
       .map((s) => new Date(s.start).getTime())
       .sort((a, b) => a - b)[0];
     const keyFmt = new Intl.DateTimeFormat("en-CA", {
-      timeZone: timezone,
+      timeZone: effectiveTz,
       year: "numeric",
       month: "2-digit",
       day: "2-digit",
@@ -281,7 +284,7 @@ export default function RegisterPage() {
       setWeekOffset(Math.min(maxWeekOffset, Math.max(0, Math.floor((idx - monIdx) / 7))));
     }
     setAutoJumped(true);
-  }, [slots, autoJumped, dayInfos, monIdx, timezone, maxWeekOffset]);
+  }, [slots, autoJumped, dayInfos, monIdx, effectiveTz, maxWeekOffset]);
 
   const weekDays = useMemo(() => {
     const startIdx = monIdx + weekOffset * 7;
@@ -315,7 +318,7 @@ export default function RegisterPage() {
           email,
           name,
           mode,
-          timezone,
+          timezone: effectiveTz,
           background,
           consent: consentAgreed,
           signature,
@@ -355,11 +358,11 @@ export default function RegisterPage() {
           <div className="panel success-panel">
             <div className="summary-box">
               <div>
-                <strong>📅 {formatDay(success.slot.start, timezone)}</strong>
+                <strong>📅 {formatDay(success.slot.start, effectiveTz)}</strong>
               </div>
               <div>
-                🕐 {formatTime(success.slot.start, timezone)}{" "}
-                <span className="muted">({timezone})</span>
+                🕐 {formatTime(success.slot.start, effectiveTz)}{" "}
+                <span className="muted">({effectiveTz})</span>
               </div>
               <div>
                 {success.mode === "in_person"
@@ -444,25 +447,32 @@ export default function RegisterPage() {
             <h2>
               <span className="step-num">2</span> Choose a time slot
             </h2>
-            <div className="tz-row">
-              <label htmlFor="tz">
-                <strong>🌍 Your timezone:</strong>
-              </label>
-              <select
-                id="tz"
-                value={timezone}
-                onChange={(e) => setTimezone(e.target.value)}
-              >
-                {!timezones.includes(timezone) && (
-                  <option value={timezone}>{timezone}</option>
-                )}
-                {timezones.map((tz) => (
-                  <option key={tz} value={tz}>
-                    {tz}
-                  </option>
-                ))}
-              </select>
-            </div>
+            {mode === "in_person" ? (
+              <p className="hint">
+                🌍 All times are in <strong>Europe/Berlin</strong> — local time in
+                Saarbrücken.
+              </p>
+            ) : (
+              <div className="tz-row">
+                <label htmlFor="tz">
+                  <strong>🌍 Your timezone:</strong>
+                </label>
+                <select
+                  id="tz"
+                  value={timezone}
+                  onChange={(e) => setTimezone(e.target.value)}
+                >
+                  {!timezones.includes(timezone) && (
+                    <option value={timezone}>{timezone}</option>
+                  )}
+                  {timezones.map((tz) => (
+                    <option key={tz} value={tz}>
+                      {tz}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
 
             {loadError && <div className="error-box">{loadError}</div>}
             {slots === null && !loadError && (
@@ -526,7 +536,7 @@ export default function RegisterPage() {
                                     )
                                   }
                                 >
-                                  {formatTime(slot.start, timezone)}
+                                  {formatTime(slot.start, effectiveTz)}
                                 </button>
                               ))
                             )}
@@ -543,8 +553,8 @@ export default function RegisterPage() {
                 )}
                 {selectedSlot && (
                   <div className="ok-box" style={{ marginTop: 14 }}>
-                    ✅ Selected: {formatDay(selectedSlot.start, timezone)},{" "}
-                    {formatTime(selectedSlot.start, timezone)} ({timezone}) — you can
+                    ✅ Selected: {formatDay(selectedSlot.start, effectiveTz)},{" "}
+                    {formatTime(selectedSlot.start, effectiveTz)} ({effectiveTz}) — you can
                     pick one slot only.
                   </div>
                 )}
