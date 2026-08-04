@@ -254,6 +254,15 @@ export default function RegisterPage() {
     return map;
   }, [slots, timezone]);
 
+  const maxWeekOffset = useMemo(() => {
+    let lastIdx = -1;
+    dayInfos.forEach((d, i) => {
+      if (d.key <= STUDY_END_KEY) lastIdx = i;
+    });
+    if (lastIdx < monIdx) return 0;
+    return Math.floor((lastIdx - monIdx) / 7);
+  }, [dayInfos, monIdx]);
+
   // Jump to the first week that actually has available slots.
   useEffect(() => {
     if (autoJumped || !slots || slots.length === 0) return;
@@ -273,15 +282,6 @@ export default function RegisterPage() {
     }
     setAutoJumped(true);
   }, [slots, autoJumped, dayInfos, monIdx, timezone, maxWeekOffset]);
-
-  const maxWeekOffset = useMemo(() => {
-    let lastIdx = -1;
-    dayInfos.forEach((d, i) => {
-      if (d.key <= STUDY_END_KEY) lastIdx = i;
-    });
-    if (lastIdx < monIdx) return 0;
-    return Math.floor((lastIdx - monIdx) / 7);
-  }, [dayInfos, monIdx]);
 
   const weekDays = useMemo(() => {
     const startIdx = monIdx + weekOffset * 7;
@@ -353,8 +353,6 @@ export default function RegisterPage() {
         </div>
         <div className="booking-wrap">
           <div className="panel success-panel">
-            <div className="big">✅</div>
-            <h2>See you soon!</h2>
             <div className="summary-box">
               <div>
                 <strong>📅 {formatDay(success.slot.start, timezone)}</strong>
@@ -370,17 +368,6 @@ export default function RegisterPage() {
               </div>
               <div>✉️ Confirmation sent to {success.email}</div>
             </div>
-            <p className="muted">
-              {success.emailSent
-                ? "A confirmation email with a calendar invite is on its way. If you don't see it, check your spam folder."
-                : "Your booking is saved. If no confirmation email arrives shortly, don't worry — your slot is reserved."}
-            </p>
-            <p className="muted">
-              Need to reschedule? Just reply to the confirmation email.
-            </p>
-            <Link className="btn btn-primary" href="/">
-              Back to the study page
-            </Link>
           </div>
         </div>
       </main>
