@@ -37,6 +37,7 @@ The database schema is created automatically on first use — no migration step 
    | `RESEND_API_KEY` | your Resend API key (`re_...`) |
    | `EMAIL_FROM` | e.g. `AI Agent Study <contact@yourdomain.com>` — must be a verified sender/domain in Resend (`RESEND_FROM` is also accepted) |
    | `ADMIN_EMAIL` | where admin notifications go |
+   | `TEAMS_MEETING_LINK` | *(optional)* reusable Microsoft Teams meeting link — automatically included in remote participants' confirmation emails and calendar invites |
    | `ADMIN_PASSWORD` | password for `/admin` — pick something strong |
    | `AUTH_SECRET` | *(optional)* separate secret for signing the admin session cookie |
 
