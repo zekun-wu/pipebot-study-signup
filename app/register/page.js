@@ -420,8 +420,8 @@ export default function RegisterPage() {
                   Please make sure{" "}
                   <strong>Microsoft Teams is installed on your computer</strong> before
                   the session and that you can comfortably join and manage a remote
-                  meeting (including screen sharing). We&apos;ll send you the meeting
-                  link by email.
+                  meeting. No need to share your own screen — we&apos;ll share ours with
+                  you. We&apos;ll send you the meeting link by email.
                 </p>
               </div>
             )}
