@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { ensureSchema, getPool } from "@/lib/db";
-import { sendConfirmationEmails } from "@/lib/email";
+import { sendPendingEmails } from "@/lib/email";
 
 export const dynamic = "force-dynamic";
 
@@ -102,7 +102,7 @@ export async function POST(request) {
     };
 
     // Fire the emails; a failure here should not undo the booking.
-    const emailResult = await sendConfirmationEmails(registration);
+    const emailResult = await sendPendingEmails(registration);
 
     return NextResponse.json({
       ok: true,

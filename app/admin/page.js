@@ -185,6 +185,37 @@ export default function AdminPage() {
     }
   }
 
+  async function handleDecision(id, decision) {
+    const warn =
+      decision === "confirmed"
+        ? "Confirm this participant? We'll email them the full confirmation now."
+        : "Decline this booking? We'll email them the recruitment-limit note and free up the slot.";
+    if (!confirm(warn)) return;
+    setMessage("");
+    setError("");
+    setBusy(true);
+    try {
+      const res = await fetch(`/api/admin/registrations`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, decision }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok) {
+        setMessage(
+          decision === "confirmed"
+            ? "Confirmed — the participant has been emailed."
+            : "Declined — the participant has been emailed and the slot is free again."
+        );
+        await loadSlots();
+      } else {
+        setError(data.error || "Could not record the decision.");
+      }
+    } finally {
+      setBusy(false);
+    }
+  }
+
   function handleHourClick(day, minutes) {
     const start = new Date(day);
     start.setHours(0, minutes, 0, 0);
@@ -347,8 +378,9 @@ export default function AdminPage() {
                       }
                       const isPast = start.getTime() < now;
                       const reg = slot.registration;
+                      const isPending = reg && reg.status !== "confirmed";
                       const cls = reg
-                        ? "cal-slot booked"
+                        ? "cal-slot booked" + (isPending ? " pending" : "")
                         : isPast
                         ? "cal-slot past"
                         : "cal-slot free";
@@ -360,13 +392,17 @@ export default function AdminPage() {
                           onClick={(e) => e.stopPropagation()}
                           title={
                             reg
-                              ? `${reg.name || reg.email} (${reg.mode === "in_person" ? "in person" : "remote"})`
+                              ? `${reg.name || reg.email} (${reg.mode === "in_person" ? "in person" : "remote"})${isPending ? " — pending decision" : ""}`
                               : "Free slot"
                           }
                         >
                           <span className="cal-slot-time">{fmtTime(start)}</span>
                           <span className="cal-slot-label">
-                            {reg ? reg.name || reg.email : isPast ? "past" : "free"}
+                            {reg
+                              ? (reg.name || reg.email) + (isPending ? " ⏳" : "")
+                              : isPast
+                              ? "past"
+                              : "free"}
                           </span>
                           {reg && (
                             <button
@@ -418,12 +454,14 @@ export default function AdminPage() {
                   <th>Participant</th>
                   <th>Mode</th>
                   <th>Background</th>
+                  <th>Status</th>
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {registrations.map((slot) => {
                   const reg = slot.registration;
+                  const isConfirmed = reg.status === "confirmed";
                   return (
                     <tr key={slot.id}>
                       <td>{fmt(slot.start)}</td>
@@ -441,12 +479,39 @@ export default function AdminPage() {
                       </td>
                       <td>{reg.background || "—"}</td>
                       <td>
-                        <button
-                          className="btn-small danger"
-                          onClick={() => handleCancelRegistration(reg.id)}
-                        >
-                          Cancel booking
-                        </button>
+                        {isConfirmed ? (
+                          <span className="tag confirmed">✅ confirmed</span>
+                        ) : (
+                          <span className="tag pending">⏳ pending</span>
+                        )}
+                      </td>
+                      <td>
+                        <div className="action-stack">
+                          {!isConfirmed && (
+                            <>
+                              <button
+                                className="btn-small primary"
+                                disabled={busy}
+                                onClick={() => handleDecision(reg.id, "confirmed")}
+                              >
+                                Confirm
+                              </button>
+                              <button
+                                className="btn-small danger"
+                                disabled={busy}
+                                onClick={() => handleDecision(reg.id, "rejected")}
+                              >
+                                Decline
+                              </button>
+                            </>
+                          )}
+                          <button
+                            className="btn-small"
+                            onClick={() => handleCancelRegistration(reg.id)}
+                          >
+                            Cancel booking
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );

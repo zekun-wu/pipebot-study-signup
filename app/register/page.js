@@ -367,11 +367,12 @@ export default function RegisterPage() {
               <div>
                 {success.mode === "in_person"
                   ? "🏛️ In person — Room 3.12, Building E1 7, Uni-Campus N 1, 66123 Saarbrücken 🍫"
-                  : "💻 Remote via Microsoft Teams — the meeting link is in your confirmation email"}
+                  : "💻 Remote via Microsoft Teams — we'll send the meeting link once your participation is confirmed"}
               </div>
-              {success.mode === "in_person" && (
-                <div>✉️ A confirmation email has been sent to {success.email}</div>
-              )}
+              <div>
+                ✉️ We&apos;ve sent a quick note to {success.email} — we&apos;ll follow up soon
+                to confirm your spot.
+              </div>
             </div>
           </div>
         </div>

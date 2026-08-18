@@ -15,7 +15,7 @@ export async function GET() {
     const { rows } = await query(
       `SELECT s.id, s.start_utc, s.duration_min,
               r.id AS registration_id, r.email, r.name, r.mode, r.timezone, r.background,
-              r.created_at AS registered_at
+              r.status, r.created_at AS registered_at
        FROM slots s
        LEFT JOIN registrations r ON r.slot_id = s.id
        ORDER BY s.start_utc ASC`
@@ -33,6 +33,7 @@ export async function GET() {
               mode: row.mode,
               timezone: row.timezone,
               background: row.background,
+              status: row.status || "pending",
               registeredAt: row.registered_at?.toISOString?.() ?? null,
             }
           : null,

@@ -917,6 +917,12 @@ input:focus {
   color: #fff;
 }
 
+.cal-slot.booked.pending {
+  background: linear-gradient(120deg, #f0b93f, var(--warn));
+  border: 1.5px solid var(--warn);
+  color: #fff;
+}
+
 .cal-slot.past {
   background: #f1ece1;
   border: 1.5px solid #d8ceb8;
@@ -1027,6 +1033,22 @@ table.admin-table th {
   color: #92600f;
 }
 
+.tag.confirmed {
+  background: #e4f4ec;
+  color: #166534;
+}
+
+.tag.pending {
+  background: #fdf3e0;
+  color: var(--warn);
+}
+
+.action-stack {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
 .btn-small {
   font: inherit;
   font-size: 13.5px;
@@ -1047,6 +1069,23 @@ table.admin-table th {
 .btn-small.danger:hover {
   border-color: var(--danger);
   color: var(--danger);
+}
+
+.btn-small.primary {
+  background: var(--grass);
+  border-color: var(--grass);
+  color: #fff;
+}
+
+.btn-small.primary:hover {
+  background: var(--forest);
+  border-color: var(--forest);
+  color: #fff;
+}
+
+.btn-small:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .add-slot-row {

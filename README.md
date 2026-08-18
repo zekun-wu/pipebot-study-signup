@@ -2,8 +2,8 @@
 
 A Doodle-style recruitment site for the user study: a vivid landing page, a booking
 page with timezone-aware time slots (remote via Microsoft Teams or in person at
-Saarland University), automatic confirmation emails to the participant and the
-admin, and a password-protected admin area for managing slots.
+Saarland University), a pending → confirm/decline review step for every booking,
+and a password-protected admin area for managing slots and registrations.
 
 ## Pages
 
@@ -11,13 +11,15 @@ admin, and a password-protected admin area for managing slots.
 | --- | --- |
 | `/` | Landing page: study pitch, eligibility, duration, €15 Amazon gift card, chocolate bonus for in-person participants |
 | `/register` | Booking: pick a slot (auto-detected timezone with manual override), choose remote/in-person, enter name + email. One slot per email, one participant per slot. |
-| `/admin` | Admin: password login, create single slots or whole series, see all registrations, cancel bookings, delete slots. |
+| `/admin` | Admin: password login, create single slots or whole series, see all registrations, **confirm or decline pending bookings**, cancel bookings, delete slots. |
 
 ## Tech stack
 
 - **Next.js 14** (App Router) — deploys directly on Vercel
 - **Postgres** via `pg` — works with the Vercel/Neon Postgres integration or any Postgres
-- **Resend** for transactional email (participant confirmation with `.ics` calendar invite + admin notification)
+- **Resend** for transactional email (short "we'll confirm later" note to the participant
+  at booking time, an admin notification with a link back to `/admin`, and then the full
+  confirmation or decline email once you make a decision)
 
 The database schema is created automatically on first use — no migration step needed.
 
@@ -37,7 +39,8 @@ The database schema is created automatically on first use — no migration step 
    | `RESEND_API_KEY` | your Resend API key (`re_...`) |
    | `EMAIL_FROM` | e.g. `AI Agent Study <contact@yourdomain.com>` — must be a verified sender/domain in Resend (`RESEND_FROM` is also accepted) |
    | `ADMIN_EMAIL` | where admin notifications go |
-   | `TEAMS_MEETING_LINK` | *(optional)* reusable Microsoft Teams meeting link — automatically included in remote participants' confirmation emails and calendar invites |
+   | `SITE_URL` | *(optional)* public URL of the site, used for the "Review in admin" link in the admin notification email — inferred from Vercel's `VERCEL_URL` if not set |
+   | `TEAMS_MEETING_LINK` | *(optional)* reusable Microsoft Teams meeting link — automatically included in remote participants' confirmation email once you confirm them |
    | `ADMIN_PASSWORD` | password for `/admin` — pick something strong |
    | `AUTH_SECRET` | *(optional)* separate secret for signing the admin session cookie |
 
@@ -61,7 +64,12 @@ Without `RESEND_API_KEY`, bookings still work — emails are skipped and logged 
 - Double-booking is prevented at the database level (unique constraints), so two
   people can't grab the same slot even if they submit at the same moment; the
   same email cannot book twice.
-- Deleting a slot cascades to its registration; cancelling a registration frees
-  the slot again (no automatic email is sent on cancellation — inform the
-  participant manually).
+- Every booking starts as **pending**: the participant gets a one-line "thanks,
+  we'll confirm later" email, and the admin gets the full notification (with the
+  signed consent PDF attached) plus a link back to `/admin`. From the
+  Registrations table there, **Confirm** sends the full confirmation email (with
+  the Teams link for remote sessions); **Decline** sends a "we've reached our
+  recruitment limit" email and frees the slot, same as cancelling.
+- Deleting a slot cascades to its registration; cancelling or declining a
+  registration frees the slot again.
 - Admin sessions last 7 days (HMAC-signed HttpOnly cookie).
