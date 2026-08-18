@@ -23,6 +23,25 @@ export async function DELETE(request) {
   }
 }
 
+// Admin: one-off backfill — mark every still-pending registration as
+// confirmed WITHOUT sending any email. Intended for bookings made before the
+// pending/confirm/decline review step existed, which already received the
+// old immediate confirmation email — re-emailing them would be unwanted.
+export async function POST(request) {
+  if (!isAdminRequest()) {
+    return NextResponse.json({ error: "Not logged in." }, { status: 401 });
+  }
+  try {
+    const { rows } = await query(
+      `UPDATE registrations SET status = 'confirmed' WHERE status <> 'confirmed' RETURNING id`
+    );
+    return NextResponse.json({ ok: true, updated: rows.length });
+  } catch (err) {
+    console.error("POST /api/admin/registrations (backfill) failed:", err);
+    return NextResponse.json({ error: "Could not backfill registrations." }, { status: 500 });
+  }
+}
+
 // Admin: confirm or decline a pending registration.
 // Body: { id: 123, decision: "confirmed" | "rejected" }
 // - confirmed: marks the registration confirmed and sends the full confirmation email.

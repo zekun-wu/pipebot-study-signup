@@ -216,6 +216,34 @@ export default function AdminPage() {
     }
   }
 
+  async function handleBackfillConfirm() {
+    if (
+      !confirm(
+        "Mark ALL currently pending registrations as confirmed? This is only for bookings made before the confirm/decline step existed — NO email will be sent to anyone."
+      )
+    )
+      return;
+    setMessage("");
+    setError("");
+    setBusy(true);
+    try {
+      const res = await fetch(`/api/admin/registrations`, { method: "POST" });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok) {
+        setMessage(
+          data.updated > 0
+            ? `Marked ${data.updated} registration${data.updated === 1 ? "" : "s"} as confirmed — no emails were sent.`
+            : "Nothing to backfill — no pending registrations found."
+        );
+        await loadSlots();
+      } else {
+        setError(data.error || "Could not backfill registrations.");
+      }
+    } finally {
+      setBusy(false);
+    }
+  }
+
   function handleHourClick(day, minutes) {
     const start = new Date(day);
     start.setHours(0, minutes, 0, 0);
@@ -275,6 +303,7 @@ export default function AdminPage() {
   const columnHeight = ((DAY_END_MIN - DAY_START_MIN) / 30) * PX_PER_30MIN;
 
   const registrations = slots.filter((s) => s.registration);
+  const pendingCount = registrations.filter((s) => s.registration.status !== "confirmed").length;
 
   return (
     <main className="admin-wrap">
@@ -442,7 +471,18 @@ export default function AdminPage() {
       </div>
 
       <div className="panel">
-        <h2>📋 Registrations</h2>
+        <div className="cal-toolbar">
+          <h2 style={{ margin: 0 }}>📋 Registrations</h2>
+          {pendingCount > 0 && (
+            <button className="btn-small" disabled={busy} onClick={handleBackfillConfirm}>
+              Mark all pending as confirmed (no email)
+            </button>
+          )}
+        </div>
+        <p className="hint">
+          Use the button above only to backfill bookings made before this review step
+          existed — it just flips their status, no emails go out.
+        </p>
         {registrations.length === 0 ? (
           <div className="empty-state">No registrations yet.</div>
         ) : (
@@ -487,7 +527,14 @@ export default function AdminPage() {
                       </td>
                       <td>
                         <div className="action-stack">
-                          {!isConfirmed && (
+                          {isConfirmed ? (
+                            <button
+                              className="btn-small danger"
+                              onClick={() => handleCancelRegistration(reg.id)}
+                            >
+                              Cancel booking
+                            </button>
+                          ) : (
                             <>
                               <button
                                 className="btn-small primary"
@@ -505,12 +552,6 @@ export default function AdminPage() {
                               </button>
                             </>
                           )}
-                          <button
-                            className="btn-small"
-                            onClick={() => handleCancelRegistration(reg.id)}
-                          >
-                            Cancel booking
-                          </button>
                         </div>
                       </td>
                     </tr>
