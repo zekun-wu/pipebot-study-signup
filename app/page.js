@@ -50,8 +50,8 @@ export default function Home() {
       <section className="section" id="who">
         <h2>Who we&apos;re looking for 🙌</h2>
         <p>
-          You&apos;re a great fit if you have hands-on experience with{" "}
-          <strong>at least one</strong> of the following:
+          Please make sure you have hands-on experience with{" "}
+          <strong>both</strong> of the following:
         </p>
         <div className="card-grid">
           <div className="card highlight-card">
@@ -117,10 +117,6 @@ export default function Home() {
             </div>
           </div>
         </div>
-        <p style={{ marginTop: 18 }}>
-          Similar tools count too — if you&apos;re unsure whether your experience fits,
-          just sign up and mention what you&apos;ve used.
-        </p>
       </section>
     </main>
   );

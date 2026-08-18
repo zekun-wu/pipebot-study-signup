@@ -284,6 +284,23 @@ a.pill:hover {
   padding: 0 24px;
 }
 
+.eligibility-notice {
+  background: #fdf3e0;
+  border: 1px solid #f0d9a8;
+  color: var(--warn);
+  border-radius: var(--radius);
+  padding: 14px 18px;
+  margin-bottom: 20px;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.eligibility-notice a {
+  color: var(--warn);
+  font-weight: 600;
+  text-decoration: underline;
+}
+
 .panel {
   background: #fff;
   border-radius: var(--radius);

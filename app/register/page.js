@@ -389,6 +389,12 @@ export default function RegisterPage() {
       </div>
 
       <div className="booking-wrap">
+        <div className="eligibility-notice">
+          ⚠️ Before you book: please make sure you have hands-on experience with{" "}
+          <strong>both</strong> AI agents (e.g. ChatGPT Agent, Copilot, Claude Cowork) and
+          workflow automation tools (e.g. n8n, Zapier, Node-RED).{" "}
+          <Link href="/#who">Check the full eligibility criteria →</Link>
+        </div>
         <form onSubmit={handleSubmit}>
           <div className="panel">
             <h2>
